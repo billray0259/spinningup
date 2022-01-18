@@ -23,12 +23,18 @@ def gaussian_likelihood(x, mu, log_std):
     Returns:
         Tensor with shape [batch]
     """
-    #######################
-    #                     #
-    #   YOUR CODE HERE    #
-    #                     #
-    #######################
-    return torch.zeros(1)
+    # Referencing the Log-Likelihood equation from the [documentation](https://spinningup.openai.com/en/latest/spinningup/rl_intro.html)
+    batch, dim = x.shape
+    
+    squared_diff = (x - mu)**2 # shape [batch, dim]
+    std = torch.exp(log_std) # shape [batch, dim] or [dim]
+
+    # I had to check with the solution to figure out I needed to add 1E-8 to std
+    diff_std_ratio = squared_diff / (std + 1E-8)**2 # shape [batch, dim]
+
+    summed = torch.sum(diff_std_ratio + 2*log_std, dim=1) # shape [batch]
+    log_likelihood = -0.5*(summed + dim*np.log(2*np.pi)) # shape [batch]
+    return log_likelihood
 
 
 if __name__ == '__main__':
