@@ -204,37 +204,41 @@ def td3(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
         o, a, r, o2, d = data['obs'], data['act'], data['rew'], data['obs2'], data['done']
 
         # Q-values
-        #######################
-        #                     #
-        #   YOUR CODE HERE    #
-        #                     #
-        #######################
-        # q1 = 
-        # q2 = 
+
+        q1 = ac.q1.forward(
+            torch.as_tensor(o, dtype=torch.float32),
+            torch.as_tensor(a, dtype=torch.float32)
+        )
+        
+        q2 = ac.q2.forward(
+            torch.as_tensor(o, dtype=torch.float32),
+            torch.as_tensor(a, dtype=torch.float32)
+        )
 
         # Target policy smoothing
-        #######################
-        #                     #
-        #   YOUR CODE HERE    #
-        #                     #
-        #######################
+        # Referencing the get_action function below
+        a_next = ac.act(torch.as_tensor(o, dtype=torch.float32))
+        a_next += np.clip(target_noise * np.random.randn(act_dim), -noise_clip, noise_clip)
+        a_next = np.clip(a_next, -act_limit, act_limit)
+
 
         # Target Q-values
-        #######################
-        #                     #
-        #   YOUR CODE HERE    #
-        #                     #
-        #######################
+        q1_next = ac.q1.forward(
+            torch.as_tensor(o2, dtype=torch.float32),
+            torch.as_tensor(a_next, dtype=torch.float32)
+        )
+
+        q2_next = ac.q2.forward(
+            torch.as_tensor(o2, dtype=torch.float32),
+            torch.as_tensor(a_next, dtype=torch.float32)
+        )
+
+        q_target = r + gamma * (1-d) * torch.min(q1_next, q2_next)
 
         # MSE loss against Bellman backup
-        #######################
-        #                     #
-        #   YOUR CODE HERE    #
-        #                     #
-        #######################
-        # loss_q1 = 
-        # loss_q2 = 
-        # loss_q = 
+        loss_q1 = (q1 - q_target)**2
+        loss_q2 = (q2 - q_target)**2
+        loss_q = loss_q1 + loss_q2
 
         # Useful info for logging
         loss_info = dict(Q1Vals=q1.detach().numpy(),
@@ -244,12 +248,11 @@ def td3(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
 
     # Set up function for computing TD3 pi loss
     def compute_loss_pi(data):
-        #######################
-        #                     #
-        #   YOUR CODE HERE    #
-        #                     #
-        #######################
-        # loss_pi = 
+        # NOTE this might upate the parameters in q1, which is not desired
+        loss_pi = ac.q1.forward(
+            data,
+            ac.pi.foward(data)
+        )
         return loss_pi
 
     #=========================================================================#
