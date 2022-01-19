@@ -24,6 +24,10 @@ def gaussian_likelihood(x, mu, log_std):
         Tensor with shape [batch]
     """
     # Referencing the Log-Likelihood equation from the [documentation](https://spinningup.openai.com/en/latest/spinningup/rl_intro.html)
+
+    if len(x.shape) == 1:
+        x = torch.unsqueeze(x, dim=0)
+
     batch, dim = x.shape
     
     squared_diff = (x - mu)**2 # shape [batch, dim]

@@ -40,11 +40,11 @@ def mlp(sizes, activation, output_activation=nn.Identity):
     # Append all hiden layers and activations
     for i in range(len(sizes) - 2):
         layers.append(nn.Linear(sizes[i], sizes[i+1]))
-        layers.append(activation)
+        layers.append(activation())
 
     # Append output layer and output activation
     layers.append(nn.Linear(sizes[-2], sizes[-1]))
-    layers.append(output_activation)
+    layers.append(output_activation())
 
     # Create sequential model
     return nn.Sequential(*layers)
@@ -90,7 +90,7 @@ class MLPGaussianActor(nn.Module):
         initial_log_std = torch.Tensor([-0.5] * act_dim)
         self.log_std = nn.parameter.Parameter(initial_log_std)
         
-        self.mu_net = mlp([obs_dim] + hidden_sizes + [act_dim], activation)
+        self.mu_net = mlp([obs_dim] + list(hidden_sizes) + [act_dim], activation)
 
     #================================(Given, ignore)==========================================#
     def forward(self, obs, act=None):
