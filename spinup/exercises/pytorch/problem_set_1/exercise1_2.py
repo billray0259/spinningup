@@ -33,12 +33,21 @@ def mlp(sizes, activation, output_activation=nn.Identity):
         (Use an nn.Sequential module.)
 
     """
-    #######################
-    #                     #
-    #   YOUR CODE HERE    #
-    #                     #
-    #######################
-    pass
+    # Referencing the Deterministic Policies example from the [documentation](https://spinningup.openai.com/en/latest/spinningup/rl_intro.html)
+    
+    layers = []
+
+    # Append all hiden layers and activations
+    for i in range(len(sizes) - 2):
+        layers.append(nn.Linear(sizes[i], sizes[i+1]))
+        layers.append(activation)
+
+    # Append output layer and output activation
+    layers.append(nn.Linear(sizes[-2], sizes[-1]))
+    layers.append(output_activation)
+
+    # Create sequential model
+    return nn.Sequential(*layers)
 
 class DiagonalGaussianDistribution:
 
@@ -52,12 +61,10 @@ class DiagonalGaussianDistribution:
             A PyTorch Tensor of samples from the diagonal Gaussian distribution with
             mean and log_std given by self.mu and self.log_std.
         """
-        #######################
-        #                     #
-        #   YOUR CODE HERE    #
-        #                     #
-        #######################
-        pass
+        # Referencing the Sampling equation from the [documentation](https://spinningup.openai.com/en/latest/spinningup/rl_intro.html)
+        # and the [torch.normal documentation](https://pytorch.org/docs/stable/generated/torch.normal.html#torch.normal)
+
+        return torch.normal(self.mu, torch.exp(self.log_std))
 
     #================================(Given, ignore)==========================================#
     def log_prob(self, value):
@@ -80,14 +87,10 @@ class MLPGaussianActor(nn.Module):
         independent of observations, initialized to [-0.5, -0.5, ..., -0.5].
         (Make sure it's trainable!)
         """
-        #######################
-        #                     #
-        #   YOUR CODE HERE    #
-        #                     #
-        #######################
-        # self.log_std = 
-        # self.mu_net = 
-        pass 
+        initial_log_std = torch.Tensor([-0.5] * act_dim)
+        self.log_std = nn.parameter.Parameter(initial_log_std)
+        
+        self.mu_net = mlp([obs_dim] + hidden_sizes + [act_dim], activation)
 
     #================================(Given, ignore)==========================================#
     def forward(self, obs, act=None):
